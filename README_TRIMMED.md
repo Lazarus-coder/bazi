@@ -70,7 +70,3 @@ python bazi.py 1990 7 3 12
 - ganzhi.py - 干支处理函数
 - yue.py - 月令处理
 - sizi.py - 四柱分析
-
-## 技术支持
-
-钉钉群：21734177 
