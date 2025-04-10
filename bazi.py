@@ -202,11 +202,6 @@ shens2 = gan_shens + zhi_shens2
 minggong = Zhi[(Zhi.index(zhis.month) + 1) % 12]
 taiyuan = Gan[(Gan.index(gans.month) + 1) % 10] + Zhi[(Zhi.index(zhis.month) + 3) % 12]
 
-# Get shang operation time
-def get_shang(yZhi, yGan, mZhi, mGan):
-    # This is a placeholder - the real implementation would need the actual algorithm
-    return "10岁"
-
 # Only keep the output for the basic four pillar information and dayun section
 
 sex = "女" if options.n else "男"
@@ -214,9 +209,15 @@ print("{}命".format(sex), end=' ')
 print("\t公历:", end=' ')
 print("{}年{}月{}日".format(solar.getYear(), solar.getMonth(), solar.getDay()), end=' ')
 
+# Get 上运时间 using the built-in getYun function
+yun = ba.getYun(not options.n)
+
+# Get the actual date when the person enters their first Da Yun
+shang_yun_date = yun.getStartSolar().toFullString().split()[0]
+
 print("  农历:", end=' ')
 print("{}年{}月{}日 穿=害 上运时间：{} 命宫:{} 胎元:{}".format(lunar.getYear(), lunar.getMonth(),
-    lunar.getDay(), get_shang(zhis[0], gans[0], zhis[1], gans[1]), minggong, taiyuan))
+    lunar.getDay(), shang_yun_date, minggong, taiyuan))
     
 print("\t", siling[zhis.month], lunar.getPrevJieQi(True), lunar.getPrevJieQi(True).getSolar().toYmdHms(),lunar.getNextJieQi(True),
       lunar.getNextJieQi(True).getSolar().toYmdHms())
@@ -235,15 +236,46 @@ print("-"*120)
 print()
 print("-"*120)
 print("大运：", end=' ')
-running_age = 10
+
+# Get the starting age from the Yun object
+start_year = yun.getStartYear()
+start_month = yun.getStartMonth()
+
+# Calculate the decimal starting age (years + months/12)
+start_age_decimal = start_year + (start_month / 12)
+start_age = int(start_age_decimal)  # Round down to integer
+
+# Display Da Yun periods starting from the actual starting age
+running_age = start_age
+
+# Determine direction based on gender and whether the year gan is Yang or Yin
+seq = Gan.index(gans.year)
+if options.n:  # Female
+    if seq % 2 == 0:  # Yang year gan (even index)
+        direction = -1  # Backward
+    else:  # Yin year gan (odd index)
+        direction = 1  # Forward
+else:  # Male
+    if seq % 2 == 0:  # Yang year gan (even index)
+        direction = 1  # Forward
+    else:  # Yin year gan (odd index)
+        direction = -1  # Backward
+
+dayuns = []
+gan_seq = Gan.index(gans.month)
+zhi_seq = Zhi.index(zhis.month)
+
 for i in range(8):
-    dayun = Gan[(Gan.index(gans.month) + i + 1) % 10] + Zhi[(Zhi.index(zhis.month) + i + 1) % 12]
+    gan_seq += direction
+    zhi_seq += direction
+    dayun = Gan[gan_seq%10] + Zhi[zhi_seq%12]
     print("{}~{}{}".format(running_age, running_age+9, dayun), end=' ')
     running_age += 10
 print()
 
 # Display the Dayun detailed information
-dayun_ages = [(i * 10 + 10, i * 10 + 19) for i in range(8)]  # (start_age, end_age) pairs
+# Update to use the correct starting ages based on the actual starting age
+dayun_ages = [(start_age + i * 10, start_age + i * 10 + 9) for i in range(8)]  # (start_age, end_age) pairs
 
 # Calculate current age based on birth year and current year
 birth_year = solar.getYear()
@@ -260,8 +292,12 @@ for i, (start_age, end_age) in enumerate(dayun_ages):
 # Display details for each dayun
 for i in range(8):
     start_age, end_age = dayun_ages[i]
-    dayun_gan = Gan[(Gan.index(gans.month) + i + 1) % 10]
-    dayun_zhi = Zhi[(Zhi.index(zhis.month) + i + 1) % 12]
+    
+    # Calculate the gan and zhi for this dayun using the same method as above
+    current_gan_seq = Gan.index(gans.month) + (i + 1) * direction
+    current_zhi_seq = Zhi.index(zhis.month) + (i + 1) * direction
+    dayun_gan = Gan[current_gan_seq % 10]
+    dayun_zhi = Zhi[current_zhi_seq % 12]
     
     # Calculate years for this dayun period
     start_year = birth_year + start_age

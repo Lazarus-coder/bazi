@@ -1,0 +1,1 @@
+Error getting analysis from DeepSeek API: create() got an unexpected keyword argument 'request_timeout'
