@@ -14,7 +14,7 @@ def analyze_chart(bazi_output):
     """Send the Bazi chart to DeepSeek API for analysis"""
     # DeepSeek API configuration
     client = OpenAI(
-        api_key="sk-4bd39d066ee646c690936fcd6625c865",
+        api_key="",
         base_url="https://api.deepseek.com",
         timeout=60.0  # Set timeout to 60 seconds
     )
